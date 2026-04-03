@@ -3,6 +3,7 @@ members = [
   "backend",
   "qwen-code-api",
   "mcp/mcp-lms",
+  "mcp/mcp-tutor",
   "nanobot",
   # Uncomment these later in the lab after you add the matching repos/packages.
   "mcp/mcp-obs",
@@ -14,6 +15,7 @@ members = [
 
 [tool.uv.sources]
 mcp-lms = { path = "mcp/mcp-lms", editable = true }
+mcp-tutor = { path = "mcp/mcp-tutor", editable = true }
 
 # Uncomment these later in the lab after you add the matching repos/packages.
 
@@ -137,6 +139,7 @@ include = [
 extraPaths = [
   "backend/src",
   "mcp/mcp-lms/src",
+  "mcp/mcp-tutor/src",
   "mcp/mcp-obs/src",
   "qwen-code-api/src",
   
