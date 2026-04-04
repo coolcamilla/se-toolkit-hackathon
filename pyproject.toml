@@ -1,6 +1,6 @@
 [tool.uv.workspace]
 members = [
-  "backend",
+  # "backend",  # src/ removed — will be restored in a later task
   "qwen-code-api",
   "mcp/mcp-lms",
   "mcp/mcp-tutor",
