@@ -90,6 +90,10 @@ def main():
         },
     }
 
+    # Configure mcp_tutor MCP server for the tutor question database
+    if tutor_db_path := os.environ.get("TUTOR_DB_PATH"):
+        config["tools"]["mcpServers"]["tutor"]["env"]["TUTOR_DB_PATH"] = tutor_db_path
+
     # Write resolved config
     with open(resolved_path, "w") as f:
         json.dump(config, f, indent=2)
