@@ -92,7 +92,7 @@ services:
     volumes:
       - client-web-react:/output
 
-  # Task 2A — uncomment and adapt this service after you create repo-local nanobot/.
+  # Task 2A — nanobot agent with MCP tools
   nanobot:
     build:
       context: ./nanobot
@@ -115,7 +115,6 @@ services:
       - ./lab:/app/lab:ro
       - ./contributing:/app/contributing:ro
     environment:
-      # Task 1 used VM-shell URLs. In Docker, use service-to-service URLs instead.
       - LLM_API_KEY=${LLM_API_KEY:?'LLM_API_KEY is required'}
       - LLM_API_BASE_URL=http://qwen-code-api:${QWEN_CODE_API_CONTAINER_PORT:?'QWEN_CODE_API_CONTAINER_PORT is required'}/v1
       - LLM_API_MODEL=${LLM_API_MODEL:?'LLM_API_MODEL is required'}
@@ -128,6 +127,7 @@ services:
       - NANOBOT_WEBCHAT_CONTAINER_ADDRESS=${NANOBOT_WEBCHAT_CONTAINER_ADDRESS:?'NANOBOT_WEBCHAT_CONTAINER_ADDRESS is required'}
       - NANOBOT_WEBCHAT_CONTAINER_PORT=${NANOBOT_WEBCHAT_CONTAINER_PORT:?'NANOBOT_WEBCHAT_CONTAINER_PORT is required'}
       - NANOBOT_ACCESS_KEY=${NANOBOT_ACCESS_KEY:?'NANOBOT_ACCESS_KEY is required'}
+      - TUTOR_DB_PATH=/app/nanobot/tutor.db
       - OTEL_SERVICE_NAME=nanobot
       - OTEL_TRACES_EXPORTER=otlp
       - OTEL_METRICS_EXPORTER=none
@@ -140,7 +140,7 @@ services:
       - qwen-code-api
       - otel-collector
 
-  # Task 2B — uncomment after you add nanobot-websocket-channel and want the Flutter build.
+  # Task 2B — Flutter web client build
   client-web-flutter:
     build:
       context: ./nanobot-websocket-channel/client-web-flutter
@@ -157,9 +157,7 @@ services:
     depends_on:
       - backend
       - client-web-react
-      # Task 2B — uncomment after you enable the Flutter build service above.
       - client-web-flutter
-      # Task 2A — uncomment after you enable the nanobot service above.
       - nanobot
       - qwen-code-api
       - victorialogs
@@ -167,7 +165,6 @@ services:
     environment:
       - CADDY_CONTAINER_PORT=${CADDY_CONTAINER_PORT:?'CADDY_CONTAINER_PORT is required'}
       - BACKEND_CONTAINER_PORT=${BACKEND_CONTAINER_PORT:?'BACKEND_CONTAINER_PORT is required'}
-      # Task 2A — uncomment when you proxy /ws/chat to nanobot.
       - NANOBOT_WEBCHAT_CONTAINER_PORT=${NANOBOT_WEBCHAT_CONTAINER_PORT:?'NANOBOT_WEBCHAT_CONTAINER_PORT is required'}
       - QWEN_CODE_API_CONTAINER_PORT=${QWEN_CODE_API_CONTAINER_PORT:?'QWEN_CODE_API_CONTAINER_PORT is required'}
       - CONST_PGADMIN_CONTAINER_PORT=${CONST_PGADMIN_CONTAINER_PORT:?'CONST_PGADMIN_CONTAINER_PORT is required'}
@@ -178,7 +175,6 @@ services:
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - client-web-react:/srv/react:ro
-      # Task 2B — uncomment when you want Caddy to serve the Flutter build output.
       - client-web-flutter:/srv/flutter:ro
 
   qwen-code-api:
