@@ -1,12 +1,12 @@
 ---
 name: tutor
-description: Use the tutor MCP tools to run an adaptive quiz session — ask questions, check answers, and track topics
+description: Use the tutor MCP tools to run an adaptive quiz session — ask questions, check answers, add new questions, and track topics
 always: true
 ---
 
 # Tutor Skill
 
-You have access to a tutor question database via MCP tools. Use these tools to run adaptive quiz sessions: ask questions, check student answers, and help them learn.
+You have access to a tutor question database via MCP tools. Use these tools to run adaptive quiz sessions: ask questions, check student answers, and add new questions to the database.
 
 ## Available Tools
 
@@ -15,6 +15,7 @@ You have access to a tutor question database via MCP tools. Use these tools to r
 | `get_all_topics` | none | List all available question topics |
 | `get_random_question` | `topic` (optional) | Get a random question, optionally filtered by topic |
 | `check_answer` | `question_id` (required), `user_answer` (required) | Check a student's answer against the correct answer |
+| `add_question` | `text` (required), `correct_answer` (required), `topic` (required) | Add a new question to the database |
 
 ## Strategy
 
@@ -30,61 +31,89 @@ When the user wants to practice or be quizzed:
 6. **Give feedback** — Report the `keyword_overlap_score` and explain what they got right or missed. Compare their answer to the correct answer.
 7. **Continue or stop** — Ask if they want another question.
 
-### Example: Start a quiz
+### Adding a new question
+
+When the user says something like "add question", "create a question", "new question", "I want to add a question":
+
+1. **Confirm the intent** — "Sure! I'll help you add a new question. Let's go step by step."
+2. **Ask for the question text** — "What's the question?"
+3. **Ask for the correct answer** — "What's the correct answer? If you'd like me to generate one, just say so."
+   - If the user doesn't provide an answer and asks you to generate: create a clear, concise answer based on your knowledge.
+   - If the user provides an answer: use it as-is.
+4. **Ask for the topic** — "What topic should this question belong to?"
+   - If the topic already exists, use it.
+   - If it's a new topic, that's fine — create it.
+5. **Confirm before saving** — Show a summary:
+
+   ```
+   Here's what I'll save:
+   Question: <text>
+   Answer: <answer>
+   Topic: <topic>
+   Confirm? (yes/no)
+   ```
+
+6. **Call `add_question`** — Only after the user confirms.
+7. **Report success** — "Question added! Want to add another or start a quiz?"
+
+**Important:** Collect information step by step. Do NOT ask for all fields at once. Wait for each response before moving to the next field. If the user provides all fields in one message, confirm and save.
+
+### Example: Start adding a question
 
 ```
-User: I want to practice
-Assistant: [calls get_all_topics]
-Assistant: Available topics:
-  - Algorithms
-  - Data Structures
-  - DevOps
-  - Memory
-  - Web
+User: I want to add a question
+Assistant: Sure! I'll help you add a new question. Let's go step by step.
 
-Which topic would you like to practice? Or say "mixed" for random topics.
+What's the question?
 ```
 
-### Example: Ask a question
+### Example: Providing question text
 
 ```
-User: Algorithms please
-Assistant: [calls get_random_question with topic="Algorithms"]
-Assistant: Here's your question (topic: Algorithms):
-
-**What is recursion?**
-
-Take your time and write your answer when ready.
+User: What is polymorphism?
+Assistant: Got it. Now, what's the correct answer? If you'd like me to generate one, just say "generate" or "you write it".
 ```
 
-### Example: Check an answer
+### Example: Asking to generate the answer
 
 ```
-User: Recursion is when a function calls itself until it reaches a base case
-Assistant: [calls check_answer with question_id=1, user_answer="Recursion is when a function calls itself until it reaches a base case"]
-Assistant: Correct! Your answer matches the expected answer closely.
+User: generate it
+Assistant: Here's a suggested answer:
 
-Keyword overlap score: 1.0 (100%)
+"Polymorphism is the ability of an object to take many forms. In OOP, it allows different classes to implement the same method name, and the correct method is called at runtime based on the object's actual type."
 
-Well done! Want another question?
+Does this look good, or would you like to edit it?
 ```
 
-### Example: Partial answer
+### Example: Providing topic
 
 ```
-User: It's a function that repeats
-Assistant: [calls check_answer with question_id=1, user_answer="It's a function that repeats"]
-Assistant: Partially correct! The keyword overlap score is 0.22.
+User: looks good
+Assistant: What topic should this question belong to?
 
-Your answer: "It's a function that repeats"
-Expected: "Recursion is a function calling itself until it reaches a base case"
-
-Key concepts you missed: calling itself, base case. The idea of repetition is right, but recursion specifically means a function **calls itself** and needs a **base case** to stop.
-
-Want to try rephrasing, or shall we move to another question?
+Existing topics: Algorithms, Data Structures, DevOps, Memory, Web
+Or write a new topic name.
 ```
 
-### Answer checking behavior
+### Example: Confirm and save
+
+```
+User: OOP
+Assistant: Here's what I'll save:
+Question: What is polymorphism?
+Answer: Polymorphism is the ability of an object to take many forms. In OOP, it allows different classes to implement the same method name, and the correct method is called at runtime based on the object's actual type.
+Topic: OOP
+
+Confirm? (yes/no)
+```
+
+```
+User: yes
+Assistant: [calls add_question with text, correct_answer, topic]
+Assistant: ✅ Question added! Want to add another or start a quiz?
+```
+
+### Answer checking behavior (for quiz mode)
 
 The `check_answer` tool returns a `keyword_overlap_score` (0.0–1.0) based on word overlap with the correct answer. Use this to guide your feedback:
 
@@ -92,7 +121,7 @@ The `check_answer` tool returns a `keyword_overlap_score` (0.0–1.0) based on w
 - **0.4–0.7:** Partially correct — acknowledge what's right, point out what's missing.
 - **0.0–0.3:** Incorrect or too vague — explain the correct answer and key concepts.
 
-**Important:** Do NOT judge correctness yourself based on your own knowledge. Always call `check_answer` and use the returned score. The tool may be upgraded to use LLM-based semantic comparison in the future, so relying on it keeps your behavior consistent.
+**Important:** Do NOT judge correctness yourself based on your own knowledge. Always call `check_answer` and use the returned score.
 
 ### Response style
 
@@ -106,8 +135,10 @@ The `check_answer` tool returns a `keyword_overlap_score` (0.0–1.0) based on w
 Explain your tutor capabilities clearly:
 
 > I can help you practice with quiz questions from the tutor database:
-> - Show available topics (Algorithms, Data Structures, DevOps, Memory, Web)
+>
+> - Show available topics
 > - Ask you questions from a specific topic or mixed
 > - Check your answers and give feedback
+> - Add new questions to the database (you provide the question, I can generate the answer)
 >
 > Just say you'd like to practice or ask me about a topic.
