@@ -12,36 +12,15 @@ services:
     ports:
       - ${BACKEND_HOST_ADDRESS:?'BACKEND_HOST_ADDRESS is required'}:${BACKEND_HOST_PORT:?'BACKEND_HOST_PORT is required'}:${BACKEND_CONTAINER_PORT}
     environment:
-      - NAME=${BACKEND_NAME:?'BACKEND_NAME is required'}
-      - DEBUG=${BACKEND_DEBUG:?'BACKEND_DEBUG is required'}
-      - ADDRESS=${BACKEND_CONTAINER_ADDRESS:?'BACKEND_CONTAINER_ADDRESS is required'}
-      - PORT=${BACKEND_CONTAINER_PORT:?'BACKEND_CONTAINER_PORT is required'}
-      - RELOAD=${BACKEND_RELOAD:?'BACKEND_RELOAD is required'}
-      - UVICORN_HOST=${BACKEND_CONTAINER_ADDRESS:?'BACKEND_CONTAINER_ADDRESS is required'}
-      - UVICORN_PORT=${BACKEND_CONTAINER_PORT:?'BACKEND_CONTAINER_PORT is required'}
-      - UVICORN_RELOAD=${BACKEND_RELOAD:?'BACKEND_RELOAD is required'}
-      - CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-[]}
-      - LMS_API_KEY=${LMS_API_KEY:?'LMS_API_KEY is required'}
-      - BACKEND_ENABLE_INTERACTIONS=${BACKEND_ENABLE_INTERACTIONS:?'BACKEND_ENABLE_INTERACTIONS is required'}
-      - BACKEND_ENABLE_LEARNERS=${BACKEND_ENABLE_LEARNERS:?'BACKEND_ENABLE_LEARNERS is required'}
-      - AUTOCHECKER_API_URL=${AUTOCHECKER_API_URL:?'AUTOCHECKER_API_URL is required'}
-      - AUTOCHECKER_API_LOGIN=${AUTOCHECKER_API_LOGIN:?'AUTOCHECKER_API_LOGIN is required'}
-      - AUTOCHECKER_API_PASSWORD=${AUTOCHECKER_API_PASSWORD:?'AUTOCHECKER_API_PASSWORD is required'}
-      - DB_HOST=${CONST_POSTGRESQL_SERVICE_NAME:?'CONST_POSTGRESQL_SERVICE_NAME is required'}
-      - DB_PORT=${CONST_POSTGRESQL_DEFAULT_PORT:?'CONST_POSTGRESQL_DEFAULT_PORT is required'}
-      - DB_NAME=${POSTGRES_DB:?'POSTGRES_DB is required'}
-      - DB_USER=${POSTGRES_USER:?'POSTGRES_USER is required'}
-      - DB_PASSWORD=${POSTGRES_PASSWORD:?'POSTGRES_PASSWORD is required'}
-      - OTEL_SERVICE_NAME=${BACKEND_NAME:?'BACKEND_NAME is required'}
-      - OTEL_TRACES_EXPORTER=otlp
-      - OTEL_METRICS_EXPORTER=none
-      - OTEL_LOGS_EXPORTER=otlp
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:${CONST_OTEL_COLLECTOR_GRPC_PORT:?'CONST_OTEL_COLLECTOR_GRPC_PORT is required'}
-      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-      - OTEL_PYTHON_LOG_CORRELATION=true
+      - TUTOR_NAME=${BACKEND_NAME:?'BACKEND_NAME is required'}
+      - TUTOR_DEBUG=${BACKEND_DEBUG:?'BACKEND_DEBUG is required'}
+      - TUTOR_HOST=${BACKEND_CONTAINER_ADDRESS:?'BACKEND_CONTAINER_ADDRESS is required'}
+      - TUTOR_PORT=${BACKEND_CONTAINER_PORT:?'BACKEND_CONTAINER_PORT is required'}
+      - TUTOR_RELOAD=${BACKEND_RELOAD:?'BACKEND_RELOAD is required'}
+      - TUTOR_DB_PATH=/app/tutor.db
+    volumes:
+      - tutor-data:/app
     depends_on:
-      postgres:
-        condition: service_healthy
       otel-collector:
         condition: service_started
 
@@ -292,6 +271,7 @@ volumes:
   client-web-flutter:
   victorialogs_data:
   victoriatraces_data:
+  tutor-data:
 
 networks:
   lms-network:
