@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Column, Integer, String, Text, select, func
+from sqlalchemy import Column, Integer, String, Text, select, func, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
@@ -103,7 +103,9 @@ async def init_db() -> None:
 
         # Always sync the sequence (safe to run even if table is empty)
         await session.execute(
-            "SELECT setval(pg_get_serial_sequence('questions', 'id'), "
-            "COALESCE((SELECT MAX(id) FROM questions), 1), true)"
+            text(
+                "SELECT setval(pg_get_serial_sequence('questions', 'id'), "
+                "COALESCE((SELECT MAX(id) FROM questions), 1), true)"
+            )
         )
         await session.commit()
