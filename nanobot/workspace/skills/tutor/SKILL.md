@@ -43,24 +43,29 @@ When the user says something like "add question", "create a question", "new ques
 2. **Ask for the question text** — "What's the question?"
 3. **Ask for the correct answer** — "What's the correct answer? If you'd like me to generate one, just say so."
    - If the user doesn't provide an answer and asks you to generate: create a clear, concise answer based on your knowledge.
-   - If the user provides an answer: use it as-is.
+   - If the user provides an answer: use it, but fix any typos or grammar mistakes.
 4. **Ask for the topic** — "What topic should this question belong to?"
    - If the topic already exists, use it.
-   - If it's a new topic, that's fine — create it.
-5. **Confirm before saving** — Show a summary:
+   - If it's a new topic, that's fine — create it. Capitalize the topic name (e.g., "oop" → "OOP", "data structures" → "Data Structures").
+5. **Confirm before saving** — Show a summary. **Before showing, fix any typos or grammar mistakes in the question text, answer, and topic:**
 
    ```
    Here's what I'll save:
-   Question: <text>
-   Answer: <answer>
-   Topic: <topic>
+   Question: <corrected text>
+   Answer: <corrected answer>
+   Topic: <Capitalized Topic>
    Confirm? (yes/no)
    ```
 
-6. **Call `add_question`** — Only after the user confirms.
+6. **Call `add_question`** — Only after the user confirms. Always use the corrected version.
 7. **Report success** — "Question added! Want to add another or start a quiz?"
 
-**Important:** Collect information step by step. Do NOT ask for all fields at once. Wait for each response before moving to the next field. If the user provides all fields in one message, confirm and save.
+**Important rules for adding questions:**
+
+- **Correct spelling and grammar silently** — don't lecture the user, just fix typos before saving.
+- If the user writes "recusrion", save "recursion". If they write "whats is http", save "What is HTTP?".
+- **Capitalize topic names consistently** — "algorithms" → "Algorithms", "data structures" → "Data Structures".
+- Collect information step by step. Do NOT ask for all fields at once.
 
 ### Example: Start adding a question
 
