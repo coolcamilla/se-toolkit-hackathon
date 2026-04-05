@@ -36,7 +36,15 @@ The `evaluate_answer` tool returns a score 0–100 using LLM semantic evaluation
 - **50–79:** ⚠️ Partially correct — some key ideas present, important concepts missing
 - **0–49:** ❌ Incorrect — misses the main point or too vague
 
-**Important:** Synonyms and minor omissions should NOT be penalized heavily. The LLM understands meaning, not just keywords.
+**Important rules for feedback:**
+
+- Synonyms and minor omissions should NOT be penalized heavily.
+- **If score < 100, you MUST explicitly explain what was missed.** Always show:
+  1. What the user got right
+  2. What specific concept or detail is missing from their answer
+  3. A brief version of the full correct answer
+- Use the `key_concepts_missed` field from the tool output to list the missing concepts clearly.
+- **Never just give a score without explanation.** Every answer gets feedback.
 
 ## Mode 1: Random Quiz
 
