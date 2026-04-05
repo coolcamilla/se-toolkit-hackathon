@@ -302,7 +302,7 @@
         "env": {
           "TUTOR_DB_HOST": "postgres",
           "TUTOR_DB_PORT": "5432",
-          "TUTOR_DB_NAME": "db-lab-8",
+          "TUTOR_DB_NAME": "db-hackathon",
           "TUTOR_DB_USER": "postgres",
           "TUTOR_DB_PASSWORD": "postgres"
         }
