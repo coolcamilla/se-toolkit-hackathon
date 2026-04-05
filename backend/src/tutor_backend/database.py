@@ -100,3 +100,10 @@ async def init_db() -> None:
         if count == 0:
             session.add_all([Question(**q) for q in _SEED_DATA])
             await session.commit()
+
+        # Always sync the sequence (safe to run even if table is empty)
+        await session.execute(
+            "SELECT setval(pg_get_serial_sequence('questions', 'id'), "
+            "COALESCE((SELECT MAX(id) FROM questions), 1), true)"
+        )
+        await session.commit()
