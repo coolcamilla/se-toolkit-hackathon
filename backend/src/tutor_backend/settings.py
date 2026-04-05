@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     db_user: str = "postgres"
     db_password: str = "postgres"
 
+    # API key for endpoint auth
+    api_key: str = ""
+
     @property
     def db_url(self) -> str:
         return (
