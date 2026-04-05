@@ -5,12 +5,13 @@ from __future__ import annotations
 import random
 
 from fastapi import APIRouter, HTTPException
+from sqlalchemy import func, select
 
-from tutor_backend.database import get_connection
+from tutor_backend.database import Question, async_session
 from tutor_backend.models import (
     AnswerRequest,
     AnswerResponse,
-    Question,
+    Question as QuestionSchema,
     QuestionCreate,
     QuestionUpdate,
 )
@@ -18,134 +19,107 @@ from tutor_backend.models import (
 router = APIRouter(prefix="/questions", tags=["questions"])
 
 
-@router.get("/random", response_model=Question)
+@router.get("/random", response_model=QuestionSchema)
 async def get_random_question(topic: str | None = None):
     """Return a random question, optionally filtered by topic."""
-    conn = get_connection()
-    try:
+    async with async_session() as session:
         if topic:
-            cursor = conn.execute(
-                "SELECT id, text, topic FROM questions WHERE topic = ?", (topic,)
-            )
+            stmt = select(Question).where(Question.topic == topic)
         else:
-            cursor = conn.execute("SELECT id, text, topic FROM questions")
-        rows = cursor.fetchall()
+            stmt = select(Question)
+        result = await session.execute(stmt)
+        rows = result.scalars().all()
         if not rows:
             raise HTTPException(status_code=404, detail="No questions found")
-        row = random.choice(rows)
-        return Question(id=row["id"], text=row["text"], topic=row["topic"])
-    finally:
-        conn.close()
+        q = random.choice(rows)
+        return QuestionSchema(id=q.id, text=q.text, topic=q.topic)
 
 
 @router.get("/topics", response_model=list[str])
 async def get_topics():
     """Return all available topics."""
-    conn = get_connection()
-    try:
-        cursor = conn.execute("SELECT DISTINCT topic FROM questions ORDER BY topic")
-        return [row["topic"] for row in cursor.fetchall()]
-    finally:
-        conn.close()
+    async with async_session() as session:
+        result = await session.execute(
+            select(Question.topic).distinct().order_by(Question.topic)
+        )
+        return [row[0] for row in result.all()]
 
 
-@router.get("", response_model=list[Question])
+@router.get("", response_model=list[QuestionSchema])
 async def list_questions():
     """Return all questions."""
-    conn = get_connection()
-    try:
-        cursor = conn.execute("SELECT id, text, topic FROM questions ORDER BY id")
+    async with async_session() as session:
+        result = await session.execute(select(Question).order_by(Question.id))
         return [
-            Question(id=row["id"], text=row["text"], topic=row["topic"])
-            for row in cursor.fetchall()
+            QuestionSchema(id=q.id, text=q.text, topic=q.topic)
+            for q in result.scalars().all()
         ]
-    finally:
-        conn.close()
 
 
-@router.post("", response_model=Question, status_code=201)
+@router.post("", response_model=QuestionSchema, status_code=201)
 async def create_question(data: QuestionCreate):
     """Add a new question."""
-    conn = get_connection()
-    try:
-        cursor = conn.execute(
-            "INSERT INTO questions (text, correct_answer, topic) VALUES (?, ?, ?)",
-            (data.text, data.correct_answer, data.topic),
+    async with async_session() as session:
+        q = Question(
+            text=data.text, correct_answer=data.correct_answer, topic=data.topic
         )
-        conn.commit()
-        return Question(id=cursor.lastrowid, text=data.text, topic=data.topic)
-    finally:
-        conn.close()
+        session.add(q)
+        await session.commit()
+        await session.refresh(q)
+        return QuestionSchema(id=q.id, text=q.text, topic=q.topic)
 
 
-@router.put("/{question_id}", response_model=Question)
+@router.put("/{question_id}", response_model=QuestionSchema)
 async def update_question(question_id: int, data: QuestionUpdate):
     """Update an existing question."""
-    conn = get_connection()
-    try:
-        cursor = conn.execute(
-            "SELECT id FROM questions WHERE id = ?", (question_id,)
+    async with async_session() as session:
+        result = await session.execute(
+            select(Question).where(Question.id == question_id)
         )
-        if not cursor.fetchone():
+        q = result.scalar_one_or_none()
+        if not q:
             raise HTTPException(status_code=404, detail="Question not found")
 
-        updates: dict[str, str] = {}
         if data.text is not None:
-            updates["text"] = data.text
+            q.text = data.text
         if data.correct_answer is not None:
-            updates["correct_answer"] = data.correct_answer
+            q.correct_answer = data.correct_answer
         if data.topic is not None:
-            updates["topic"] = data.topic
+            q.topic = data.topic
 
-        if updates:
-            set_clause = ", ".join(f"{k} = ?" for k in updates)
-            conn.execute(
-                f"UPDATE questions SET {set_clause} WHERE id = ?",
-                (*updates.values(), question_id),
-            )
-            conn.commit()
-
-        cursor = conn.execute(
-            "SELECT id, text, topic FROM questions WHERE id = ?", (question_id,)
-        )
-        row = cursor.fetchone()
-        return Question(id=row["id"], text=row["text"], topic=row["topic"])
-    finally:
-        conn.close()
+        await session.commit()
+        await session.refresh(q)
+        return QuestionSchema(id=q.id, text=q.text, topic=q.topic)
 
 
 @router.delete("/{question_id}", status_code=204)
 async def delete_question(question_id: int):
     """Delete a question."""
-    conn = get_connection()
-    try:
-        cursor = conn.execute(
-            "DELETE FROM questions WHERE id = ?", (question_id,)
+    async with async_session() as session:
+        result = await session.execute(
+            select(Question).where(Question.id == question_id)
         )
-        conn.commit()
-        if cursor.rowcount == 0:
+        q = result.scalar_one_or_none()
+        if not q:
             raise HTTPException(status_code=404, detail="Question not found")
-    finally:
-        conn.close()
+        await session.delete(q)
+        await session.commit()
 
 
 @router.post("/check", response_model=AnswerResponse)
 async def check_answer(req: AnswerRequest):
     """Check a user's answer against the correct answer using keyword overlap."""
-    conn = get_connection()
-    try:
-        cursor = conn.execute(
-            "SELECT correct_answer, text FROM questions WHERE id = ?",
-            (req.question_id,),
+    async with async_session() as session:
+        result = await session.execute(
+            select(Question).where(Question.id == req.question_id)
         )
-        row = cursor.fetchone()
-        if not row:
+        q = result.scalar_one_or_none()
+        if not q:
             raise HTTPException(
                 status_code=404, detail=f"Question {req.question_id} not found"
             )
 
-        correct = row["correct_answer"]
-        correct_words = set(correct.lower().split())
+        correct_words = set(q.correct_answer.lower().split())
         answer_words = set(req.user_answer.lower().split())
         overlap = len(correct_words & answer_words)
         total = len(correct_words)
@@ -154,11 +128,9 @@ async def check_answer(req: AnswerRequest):
 
         return AnswerResponse(
             question_id=req.question_id,
-            question=row["text"],
+            question=q.text,
             user_answer=req.user_answer,
-            correct_answer=correct,
+            correct_answer=q.correct_answer,
             keyword_overlap_score=score,
             verdict=verdict,
         )
-    finally:
-        conn.close()
