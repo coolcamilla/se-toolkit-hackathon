@@ -122,6 +122,54 @@ async def _add_question(text: str, correct_answer: str, topic: str) -> dict:
         }
 
 
+async def _delete_question(question_id: int) -> dict:
+    async with aiosqlite.connect(str(get_db_path())) as conn:
+        cursor = await conn.execute(
+            "SELECT id, text, topic FROM questions WHERE id = ?", (question_id,)
+        )
+        row = await cursor.fetchone()
+        if row is None:
+            return {"error": f"Question with id={question_id} not found"}
+        await conn.execute("DELETE FROM questions WHERE id = ?", (question_id,))
+        await conn.commit()
+        return {
+            "id": row[0],
+            "text": row[1],
+            "topic": row[2],
+            "status": "deleted",
+        }
+
+
+async def _update_question(
+    question_id: int, text: str | None, correct_answer: str | None, topic: str | None
+) -> dict:
+    async with aiosqlite.connect(str(get_db_path())) as conn:
+        cursor = await conn.execute(
+            "SELECT id, text, correct_answer, topic FROM questions WHERE id = ?",
+            (question_id,),
+        )
+        row = await cursor.fetchone()
+        if row is None:
+            return {"error": f"Question with id={question_id} not found"}
+
+        new_text = text if text is not None else row[1]
+        new_answer = correct_answer if correct_answer is not None else row[2]
+        new_topic = topic if topic is not None else row[3]
+
+        await conn.execute(
+            "UPDATE questions SET text = ?, correct_answer = ?, topic = ? WHERE id = ?",
+            (new_text, new_answer, new_topic, question_id),
+        )
+        await conn.commit()
+        return {
+            "id": question_id,
+            "text": new_text,
+            "correct_answer": new_answer,
+            "topic": new_topic,
+            "status": "updated",
+        }
+
+
 # ---------------------------------------------------------------------------
 # Tool definitions
 # ---------------------------------------------------------------------------
@@ -146,6 +194,17 @@ class AddQuestionArgs(BaseModel):
     topic: str
 
 
+class DeleteQuestionArgs(BaseModel):
+    question_id: int
+
+
+class UpdateQuestionArgs(BaseModel):
+    question_id: int
+    text: str | None = None
+    correct_answer: str | None = None
+    topic: str | None = None
+
+
 async def handle_get_random_question(args: GetRandomQuestionArgs) -> dict:
     return await _get_random_question(args.topic)
 
@@ -160,6 +219,16 @@ async def handle_get_topics(args: GetTopicsArgs) -> list[str]:
 
 async def handle_add_question(args: AddQuestionArgs) -> dict:
     return await _add_question(args.text, args.correct_answer, args.topic)
+
+
+async def handle_delete_question(args: DeleteQuestionArgs) -> dict:
+    return await _delete_question(args.question_id)
+
+
+async def handle_update_question(args: UpdateQuestionArgs) -> dict:
+    return await _update_question(
+        args.question_id, args.text, args.correct_answer, args.topic
+    )
 
 
 TOOL_SPECS = [
@@ -186,6 +255,18 @@ TOOL_SPECS = [
         "description": "Add a new question to the tutor database. Requires question text, correct answer, and topic.",
         "model": AddQuestionArgs,
         "handler": handle_add_question,
+    },
+    {
+        "name": "delete_question",
+        "description": "Delete a question from the tutor database by its ID.",
+        "model": DeleteQuestionArgs,
+        "handler": handle_delete_question,
+    },
+    {
+        "name": "update_question",
+        "description": "Update an existing question. Provide question_id and any fields to change (text, correct_answer, topic).",
+        "model": UpdateQuestionArgs,
+        "handler": handle_update_question,
     },
 ]
 
