@@ -107,9 +107,25 @@ async def _get_all_topics() -> list[str]:
         return [row[0] for row in rows]
 
 
+async def _add_question(text: str, correct_answer: str, topic: str) -> dict:
+    async with aiosqlite.connect(str(get_db_path())) as conn:
+        cursor = await conn.execute(
+            "INSERT INTO questions (text, correct_answer, topic) VALUES (?, ?, ?)",
+            (text, correct_answer, topic),
+        )
+        await conn.commit()
+        return {
+            "id": cursor.lastrowid,
+            "text": text,
+            "correct_answer": correct_answer,
+            "topic": topic,
+        }
+
+
 # ---------------------------------------------------------------------------
 # Tool definitions
 # ---------------------------------------------------------------------------
+
 
 class GetRandomQuestionArgs(BaseModel):
     topic: str | None = None
@@ -124,6 +140,12 @@ class GetTopicsArgs(BaseModel):
     pass
 
 
+class AddQuestionArgs(BaseModel):
+    text: str
+    correct_answer: str
+    topic: str
+
+
 async def handle_get_random_question(args: GetRandomQuestionArgs) -> dict:
     return await _get_random_question(args.topic)
 
@@ -134,6 +156,10 @@ async def handle_check_answer(args: CheckAnswerArgs) -> dict:
 
 async def handle_get_topics(args: GetTopicsArgs) -> list[str]:
     return await _get_all_topics()
+
+
+async def handle_add_question(args: AddQuestionArgs) -> dict:
+    return await _add_question(args.text, args.correct_answer, args.topic)
 
 
 TOOL_SPECS = [
@@ -155,6 +181,12 @@ TOOL_SPECS = [
         "model": GetTopicsArgs,
         "handler": handle_get_topics,
     },
+    {
+        "name": "add_question",
+        "description": "Add a new question to the tutor database. Requires question text, correct answer, and topic.",
+        "model": AddQuestionArgs,
+        "handler": handle_add_question,
+    },
 ]
 
 TOOLS_BY_NAME = {spec["name"]: spec for spec in TOOL_SPECS}
@@ -167,6 +199,7 @@ def _text(data: Any) -> list[TextContent]:
 # ---------------------------------------------------------------------------
 # Server
 # ---------------------------------------------------------------------------
+
 
 def create_server() -> Server:
     server = Server("tutor")
