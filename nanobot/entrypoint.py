@@ -63,20 +63,6 @@ def main():
         },
     }
 
-    # Configure mcp_obs MCP server for observability tools
-    config["tools"]["mcpServers"]["obs"] = {
-        "command": "/app/.venv/bin/python",
-        "args": ["-m", "mcp_obs"],
-        "env": {
-            "VICTORIALOGS_URL": os.environ.get(
-                "VICTORIALOGS_URL", "http://victorialogs:9428"
-            ),
-            "VICTORIATRACES_URL": os.environ.get(
-                "VICTORIATRACES_URL", "http://victoriatraces:10428"
-            ),
-        },
-    }
-
     # Configure mcp_tutor MCP server for the tutor question database
     if tutor_db_path := os.environ.get("TUTOR_DB_PATH"):
         config["tools"]["mcpServers"]["tutor"]["env"]["TUTOR_DB_PATH"] = tutor_db_path
