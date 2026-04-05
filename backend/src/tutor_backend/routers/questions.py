@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import random
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import APIKeyHeader
+from fastapi import status, Security
 from sqlalchemy import func, select
 
 from tutor_backend.database import Question, async_session
@@ -15,8 +17,20 @@ from tutor_backend.models import (
     QuestionCreate,
     QuestionUpdate,
 )
+from tutor_backend.settings import settings
 
 router = APIRouter(prefix="/questions", tags=["questions"])
+
+# API key dependency for write operations
+api_key_scheme = APIKeyHeader(name="X-API-Key")
+
+
+async def require_write(api_key: str = Security(api_key_scheme)):
+    if not settings.api_key:
+        return api_key
+    if api_key != settings.api_key:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+    return api_key
 
 
 @router.get("/random", response_model=QuestionSchema)
@@ -56,7 +70,12 @@ async def list_questions():
         ]
 
 
-@router.post("", response_model=QuestionSchema, status_code=201)
+@router.post(
+    "",
+    response_model=QuestionSchema,
+    status_code=201,
+    dependencies=[Depends(require_write)],
+)
 async def create_question(data: QuestionCreate):
     """Add a new question."""
     async with async_session() as session:
@@ -69,7 +88,11 @@ async def create_question(data: QuestionCreate):
         return QuestionSchema(id=q.id, text=q.text, topic=q.topic)
 
 
-@router.put("/{question_id}", response_model=QuestionSchema)
+@router.put(
+    "/{question_id}",
+    response_model=QuestionSchema,
+    dependencies=[Depends(require_write)],
+)
 async def update_question(question_id: int, data: QuestionUpdate):
     """Update an existing question."""
     async with async_session() as session:
@@ -92,7 +115,11 @@ async def update_question(question_id: int, data: QuestionUpdate):
         return QuestionSchema(id=q.id, text=q.text, topic=q.topic)
 
 
-@router.delete("/{question_id}", status_code=204)
+@router.delete(
+    "/{question_id}",
+    status_code=204,
+    dependencies=[Depends(require_write)],
+)
 async def delete_question(question_id: int):
     """Delete a question."""
     async with async_session() as session:

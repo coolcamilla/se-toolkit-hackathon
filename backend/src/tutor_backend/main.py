@@ -9,11 +9,9 @@ from tutor_backend.database import init_db
 from tutor_backend.routers.questions import router as questions_router
 from tutor_backend.settings import settings
 
-# Global API key security
 api_key_scheme = APIKeyHeader(name="X-API-Key")
 
 
-# Dependency that enforces API key auth (only when key is configured)
 async def require_api_key(key: str = Security(api_key_scheme)):
     if not settings.api_key:
         return key
@@ -22,10 +20,7 @@ async def require_api_key(key: str = Security(api_key_scheme)):
     return key
 
 
-app = FastAPI(
-    title="Personal Exam Tutor",
-    dependencies=[Depends(require_api_key)],
-)
+app = FastAPI(title="Personal Exam Tutor")
 
 
 @app.on_event("startup")
@@ -33,7 +28,7 @@ async def startup():
     await init_db()
 
 
-@app.get("/health", dependencies=[])
+@app.get("/health")
 async def health() -> dict:
     return {"status": "ok"}
 
