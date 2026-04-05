@@ -64,9 +64,7 @@ class UserProgress(Base):
     score = Column(Float, nullable=False)  # 0.0–1.0
     user_answer = Column(Text, nullable=False)
     feedback = Column(Text, nullable=True)
-    answered_at = Column(
-        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
-    )
+    answered_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 # ---------------------------------------------------------------------------
