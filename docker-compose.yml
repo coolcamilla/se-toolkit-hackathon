@@ -113,6 +113,9 @@ services:
       - TUTOR_DB_NAME=${POSTGRES_DB:?'POSTGRES_DB is required'}
       - TUTOR_DB_USER=${POSTGRES_USER:?'POSTGRES_USER is required'}
       - TUTOR_DB_PASSWORD=${POSTGRES_PASSWORD:?'POSTGRES_PASSWORD is required'}
+      - TUTOR_LLM_API_KEY=${LLM_API_KEY:?'LLM_API_KEY is required'}
+      - TUTOR_LLM_API_BASE_URL=http://qwen-code-api:${QWEN_CODE_API_CONTAINER_PORT:?'QWEN_CODE_API_CONTAINER_PORT is required'}/v1
+      - TUTOR_LLM_MODEL=${LLM_API_MODEL:?'LLM_API_MODEL is required'}
       - OTEL_SERVICE_NAME=nanobot
       - OTEL_TRACES_EXPORTER=otlp
       - OTEL_METRICS_EXPORTER=none

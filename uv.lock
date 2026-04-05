@@ -893,6 +893,7 @@ version = "1.0.0"
 source = { editable = "mcp/mcp-tutor" }
 dependencies = [
     { name = "asyncpg" },
+    { name = "httpx" },
     { name = "mcp" },
     { name = "sqlalchemy", extra = ["asyncio"] },
 ]
@@ -900,6 +901,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "asyncpg", specifier = ">=0.30.0" },
+    { name = "httpx", specifier = ">=0.28.0" },
     { name = "mcp", specifier = ">=1.26.0,<2.0.0" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
 ]
