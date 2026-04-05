@@ -20,7 +20,10 @@ async def require_api_key(key: str = Security(api_key_scheme)):
     return key
 
 
-app = FastAPI(title="Personal Exam Tutor")
+app = FastAPI(
+    title="Personal Exam Tutor",
+    redirect_slashes=False,
+)
 
 
 @app.on_event("startup")
