@@ -14,7 +14,7 @@ members = [
 ]
 
 [tool.uv.sources]
-lms-backend = { path = "backend", editable = true }
+tutor-backend = { path = "backend", editable = true }
 mcp-lms = { path = "mcp/mcp-lms", editable = true }
 mcp-tutor = { path = "mcp/mcp-tutor", editable = true }
 
@@ -132,9 +132,9 @@ include = [
   "scripts",
   "mcp",
   "qwen-code-api",
-  
+
   # Uncomment this later in the lab after you add the matching repos/packages.
-  
+
   # "nanobot-websocket-channel"
 ]
 extraPaths = [
@@ -143,9 +143,9 @@ extraPaths = [
   "mcp/mcp-tutor/src",
   "mcp/mcp-obs/src",
   "qwen-code-api/src",
-  
+
   # Uncomment these later in the lab after you add the matching repos/packages.
-  
+
   # "nanobot-websocket-channel/mcp-webchat/src",
   # "nanobot-websocket-channel/nanobot-channel-protocol/src",
   # "nanobot-websocket-channel/client-telegram-bot/src",
@@ -168,9 +168,9 @@ include = [
   "backend",
   "mcp",
   "qwen-code-api",
-  
+
   # Uncomment this later in the lab after you add the matching repos/packages.
-  
+
   # "nanobot-websocket-channel"
 ]
 
