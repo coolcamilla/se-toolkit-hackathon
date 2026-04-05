@@ -43,4 +43,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 USER nonroot
 WORKDIR /app
 
-CMD ["uvicorn", "tutor_backend.main:app"]
+CMD ["uvicorn", "tutor_backend.main:app", "--host", "0.0.0.0"]
