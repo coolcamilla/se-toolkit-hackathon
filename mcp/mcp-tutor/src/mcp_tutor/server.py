@@ -170,6 +170,44 @@ async def _update_question(
         }
 
 
+async def _delete_topic(topic: str) -> dict:
+    async with aiosqlite.connect(str(get_db_path())) as conn:
+        cursor = await conn.execute(
+            "SELECT id, text, topic FROM questions WHERE topic = ?", (topic,)
+        )
+        rows = await cursor.fetchall()
+        if not rows:
+            return {"error": f"No questions found for topic '{topic}'"}
+        count = len(rows)
+        questions = [{"id": r[0], "text": r[1], "topic": r[2]} for r in rows]
+        await conn.execute("DELETE FROM questions WHERE topic = ?", (topic,))
+        await conn.commit()
+        return {
+            "status": "deleted",
+            "topic": topic,
+            "count": count,
+            "questions": questions,
+        }
+
+
+async def _search_questions(keyword: str) -> dict:
+    """Search questions by keyword in text or topic."""
+    async with aiosqlite.connect(str(get_db_path())) as conn:
+        pattern = f"%{keyword}%"
+        cursor = await conn.execute(
+            "SELECT id, text, topic FROM questions WHERE text LIKE ? OR topic LIKE ?",
+            (pattern, pattern),
+        )
+        rows = await cursor.fetchall()
+        if not rows:
+            return {"error": f"No questions found matching '{keyword}'"}
+        return {
+            "keyword": keyword,
+            "count": len(rows),
+            "questions": [{"id": r[0], "text": r[1], "topic": r[2]} for r in rows],
+        }
+
+
 # ---------------------------------------------------------------------------
 # Tool definitions
 # ---------------------------------------------------------------------------
@@ -205,6 +243,14 @@ class UpdateQuestionArgs(BaseModel):
     topic: str | None = None
 
 
+class DeleteTopicArgs(BaseModel):
+    topic: str
+
+
+class SearchQuestionsArgs(BaseModel):
+    keyword: str
+
+
 async def handle_get_random_question(args: GetRandomQuestionArgs) -> dict:
     return await _get_random_question(args.topic)
 
@@ -229,6 +275,14 @@ async def handle_update_question(args: UpdateQuestionArgs) -> dict:
     return await _update_question(
         args.question_id, args.text, args.correct_answer, args.topic
     )
+
+
+async def handle_delete_topic(args: DeleteTopicArgs) -> dict:
+    return await _delete_topic(args.topic)
+
+
+async def handle_search_questions(args: SearchQuestionsArgs) -> dict:
+    return await _search_questions(args.keyword)
 
 
 TOOL_SPECS = [
@@ -267,6 +321,18 @@ TOOL_SPECS = [
         "description": "Update an existing question. Provide question_id and any fields to change (text, correct_answer, topic).",
         "model": UpdateQuestionArgs,
         "handler": handle_update_question,
+    },
+    {
+        "name": "delete_topic",
+        "description": "Delete all questions belonging to a specific topic.",
+        "model": DeleteTopicArgs,
+        "handler": handle_delete_topic,
+    },
+    {
+        "name": "search_questions",
+        "description": "Search for questions by keyword in text or topic name.",
+        "model": SearchQuestionsArgs,
+        "handler": handle_search_questions,
     },
 ]
 
