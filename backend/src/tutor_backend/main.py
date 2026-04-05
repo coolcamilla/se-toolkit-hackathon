@@ -8,7 +8,7 @@ from tutor_backend.database import init_db
 from tutor_backend.routers.questions import router as questions_router
 from tutor_backend.settings import settings
 
-app = FastAPI(title=settings.name)
+app = FastAPI(title="Personal Exam Tutor")
 
 
 @app.on_event("startup")
