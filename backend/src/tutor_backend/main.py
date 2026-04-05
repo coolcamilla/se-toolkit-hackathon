@@ -13,7 +13,7 @@ app = FastAPI(title="Personal Exam Tutor")
 
 @app.on_event("startup")
 async def startup():
-    init_db()
+    await init_db()
 
 
 @app.get("/health")

@@ -11,7 +11,20 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     reload: bool = False
-    db_path: str = "tutor.db"
+
+    # PostgreSQL connection
+    db_host: str = "postgres"
+    db_port: int = 5432
+    db_name: str = "tutor"
+    db_user: str = "postgres"
+    db_password: str = "postgres"
+
+    @property
+    def db_url(self) -> str:
+        return (
+            f"postgresql+asyncpg://{self.db_user}:{self.db_password}"
+            f"@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
 
     model_config = {"env_prefix": "TUTOR_"}
 

@@ -17,10 +17,16 @@ services:
       - TUTOR_HOST=${BACKEND_CONTAINER_ADDRESS:?'BACKEND_CONTAINER_ADDRESS is required'}
       - TUTOR_PORT=${BACKEND_CONTAINER_PORT:?'BACKEND_CONTAINER_PORT is required'}
       - TUTOR_RELOAD=${BACKEND_RELOAD:?'BACKEND_RELOAD is required'}
-      - TUTOR_DB_PATH=/app/tutor.db
+      - TUTOR_DB_HOST=postgres
+      - TUTOR_DB_PORT=${CONST_POSTGRESQL_DEFAULT_PORT:?'CONST_POSTGRESQL_DEFAULT_PORT is required'}
+      - TUTOR_DB_NAME=${POSTGRES_DB:?'POSTGRES_DB is required'}
+      - TUTOR_DB_USER=${POSTGRES_USER:?'POSTGRES_USER is required'}
+      - TUTOR_DB_PASSWORD=${POSTGRES_PASSWORD:?'POSTGRES_PASSWORD is required'}
     volumes:
       - tutor-data:/app
     depends_on:
+      postgres:
+        condition: service_healthy
       otel-collector:
         condition: service_started
 
@@ -37,7 +43,6 @@ services:
       - ${POSTGRES_HOST_ADDRESS:?'POSTGRES_HOST_ADDRESS is required'}:${POSTGRES_HOST_PORT:?'POSTGRES_HOST_PORT is required'}:${CONST_POSTGRESQL_DEFAULT_PORT:?'CONST_POSTGRESQL_DEFAULT_PORT is required'}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/src/lms_backend/data/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test:
         [
