@@ -44,17 +44,6 @@ def main():
     if nanobot_gateway_port := os.environ.get("NANOBOT_GATEWAY_CONTAINER_PORT"):
         config["gateway"]["port"] = int(nanobot_gateway_port)
 
-    # Override LMS MCP server settings
-    if nanobot_lms_backend_url := os.environ.get("NANOBOT_LMS_BACKEND_URL"):
-        config["tools"]["mcpServers"]["lms"]["env"]["NANOBOT_LMS_BACKEND_URL"] = (
-            nanobot_lms_backend_url
-        )
-
-    if nanobot_lms_api_key := os.environ.get("NANOBOT_LMS_API_KEY"):
-        config["tools"]["mcpServers"]["lms"]["env"]["NANOBOT_LMS_API_KEY"] = (
-            nanobot_lms_api_key
-        )
-
     # Enable webchat channel from env vars
     if nanobot_webchat_host := os.environ.get("NANOBOT_WEBCHAT_CONTAINER_ADDRESS"):
         config["channels"]["webchat"]["host"] = nanobot_webchat_host
@@ -70,9 +59,7 @@ def main():
             "NANOBOT_WEBCHAT_UI_RELAY_URL": os.environ.get(
                 "NANOBOT_WEBCHAT_UI_RELAY_URL", "ws://localhost:8080/ws/chat"
             ),
-            "NANOBOT_WEBCHAT_UI_RELAY_TOKEN": os.environ.get(
-                "NANOBOT_ACCESS_KEY", ""
-            ),
+            "NANOBOT_WEBCHAT_UI_RELAY_TOKEN": os.environ.get("NANOBOT_ACCESS_KEY", ""),
         },
     }
 
