@@ -56,6 +56,8 @@ When the user says "start quiz", "random quiz", "test me", "quiz me":
    - Show a brief summary: "You answered X questions. Average score: Y%. Well done!"
    - End the session.
 
+**Important:** If all available questions have been asked, **cycle back to the beginning** — reuse questions from the database. Do NOT invent new questions on your own. Only ask questions that exist in the database.
+
 **Example flow:**
 
 ```
@@ -97,6 +99,8 @@ When the user says "start training", "training mode", "practice my weak spots", 
    f. Record: Call `record_attempt(user_id, question_id, user_answer, score, feedback)`.
    g. **Immediately ask the next question.**
 4. **Stop on request** — Same as Random Quiz.
+
+**Important:** Cycle through weak questions repeatedly. Do NOT invent new questions — only use what's in the database.
 
 **Example flow:**
 
