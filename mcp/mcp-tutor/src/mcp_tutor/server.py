@@ -122,6 +122,92 @@ async def _add_question(text: str, correct_answer: str, topic: str) -> dict:
         }
 
 
+async def _delete_question(question_id: int) -> dict:
+    async with aiosqlite.connect(str(get_db_path())) as conn:
+        cursor = await conn.execute(
+            "SELECT id, text, topic FROM questions WHERE id = ?", (question_id,)
+        )
+        row = await cursor.fetchone()
+        if row is None:
+            return {"error": f"Question with id={question_id} not found"}
+        await conn.execute("DELETE FROM questions WHERE id = ?", (question_id,))
+        await conn.commit()
+        return {
+            "id": row[0],
+            "text": row[1],
+            "topic": row[2],
+            "status": "deleted",
+        }
+
+
+async def _update_question(
+    question_id: int, text: str | None, correct_answer: str | None, topic: str | None
+) -> dict:
+    async with aiosqlite.connect(str(get_db_path())) as conn:
+        cursor = await conn.execute(
+            "SELECT id, text, correct_answer, topic FROM questions WHERE id = ?",
+            (question_id,),
+        )
+        row = await cursor.fetchone()
+        if row is None:
+            return {"error": f"Question with id={question_id} not found"}
+
+        new_text = text if text is not None else row[1]
+        new_answer = correct_answer if correct_answer is not None else row[2]
+        new_topic = topic if topic is not None else row[3]
+
+        await conn.execute(
+            "UPDATE questions SET text = ?, correct_answer = ?, topic = ? WHERE id = ?",
+            (new_text, new_answer, new_topic, question_id),
+        )
+        await conn.commit()
+        return {
+            "id": question_id,
+            "text": new_text,
+            "correct_answer": new_answer,
+            "topic": new_topic,
+            "status": "updated",
+        }
+
+
+async def _delete_topic(topic: str) -> dict:
+    async with aiosqlite.connect(str(get_db_path())) as conn:
+        cursor = await conn.execute(
+            "SELECT id, text, topic FROM questions WHERE topic = ?", (topic,)
+        )
+        rows = await cursor.fetchall()
+        if not rows:
+            return {"error": f"No questions found for topic '{topic}'"}
+        count = len(rows)
+        questions = [{"id": r[0], "text": r[1], "topic": r[2]} for r in rows]
+        await conn.execute("DELETE FROM questions WHERE topic = ?", (topic,))
+        await conn.commit()
+        return {
+            "status": "deleted",
+            "topic": topic,
+            "count": count,
+            "questions": questions,
+        }
+
+
+async def _search_questions(keyword: str) -> dict:
+    """Search questions by keyword in text or topic."""
+    async with aiosqlite.connect(str(get_db_path())) as conn:
+        pattern = f"%{keyword}%"
+        cursor = await conn.execute(
+            "SELECT id, text, topic FROM questions WHERE text LIKE ? OR topic LIKE ?",
+            (pattern, pattern),
+        )
+        rows = await cursor.fetchall()
+        if not rows:
+            return {"error": f"No questions found matching '{keyword}'"}
+        return {
+            "keyword": keyword,
+            "count": len(rows),
+            "questions": [{"id": r[0], "text": r[1], "topic": r[2]} for r in rows],
+        }
+
+
 # ---------------------------------------------------------------------------
 # Tool definitions
 # ---------------------------------------------------------------------------
@@ -146,6 +232,25 @@ class AddQuestionArgs(BaseModel):
     topic: str
 
 
+class DeleteQuestionArgs(BaseModel):
+    question_id: int
+
+
+class UpdateQuestionArgs(BaseModel):
+    question_id: int
+    text: str | None = None
+    correct_answer: str | None = None
+    topic: str | None = None
+
+
+class DeleteTopicArgs(BaseModel):
+    topic: str
+
+
+class SearchQuestionsArgs(BaseModel):
+    keyword: str
+
+
 async def handle_get_random_question(args: GetRandomQuestionArgs) -> dict:
     return await _get_random_question(args.topic)
 
@@ -160,6 +265,24 @@ async def handle_get_topics(args: GetTopicsArgs) -> list[str]:
 
 async def handle_add_question(args: AddQuestionArgs) -> dict:
     return await _add_question(args.text, args.correct_answer, args.topic)
+
+
+async def handle_delete_question(args: DeleteQuestionArgs) -> dict:
+    return await _delete_question(args.question_id)
+
+
+async def handle_update_question(args: UpdateQuestionArgs) -> dict:
+    return await _update_question(
+        args.question_id, args.text, args.correct_answer, args.topic
+    )
+
+
+async def handle_delete_topic(args: DeleteTopicArgs) -> dict:
+    return await _delete_topic(args.topic)
+
+
+async def handle_search_questions(args: SearchQuestionsArgs) -> dict:
+    return await _search_questions(args.keyword)
 
 
 TOOL_SPECS = [
@@ -186,6 +309,30 @@ TOOL_SPECS = [
         "description": "Add a new question to the tutor database. Requires question text, correct answer, and topic.",
         "model": AddQuestionArgs,
         "handler": handle_add_question,
+    },
+    {
+        "name": "delete_question",
+        "description": "Delete a question from the tutor database by its ID.",
+        "model": DeleteQuestionArgs,
+        "handler": handle_delete_question,
+    },
+    {
+        "name": "update_question",
+        "description": "Update an existing question. Provide question_id and any fields to change (text, correct_answer, topic).",
+        "model": UpdateQuestionArgs,
+        "handler": handle_update_question,
+    },
+    {
+        "name": "delete_topic",
+        "description": "Delete all questions belonging to a specific topic.",
+        "model": DeleteTopicArgs,
+        "handler": handle_delete_topic,
+    },
+    {
+        "name": "search_questions",
+        "description": "Search for questions by keyword in text or topic name.",
+        "model": SearchQuestionsArgs,
+        "handler": handle_search_questions,
     },
 ]
 
