@@ -147,10 +147,16 @@ Assistant: [calls evaluate_answer]
 
 When the user says "add question", "create a question":
 
-1. Ask for question text → answer (offer to generate) → topic.
-2. **Correct typos silently** — fix spelling/grammar before saving.
-3. **Capitalize topic names** — "algorithms" → "Algorithms".
-4. Show confirmation summary → call `add_question` on "yes".
+1. **Ask for the question text** — "What's the question?"
+2. **Offer to generate the answer** — "Would you like me to generate a correct answer for this question, or will you provide one?"
+   - If the user says "generate" / "you write it" / "yes": create a clear, concise answer based on your knowledge.
+   - If the user provides their own answer: use it, but fix any typos or grammar mistakes.
+3. **Ask for the topic** — "What topic should this question belong to?"
+   - Show existing topics via `get_all_topics` if unsure.
+   - Capitalize topic names — "algorithms" → "Algorithms".
+4. **Show confirmation summary** — "Here's what I'll save: Question: ... Answer: ... Topic: ... Confirm? (yes/no)"
+5. **Correct typos silently** before showing the summary.
+6. **Call `add_question`** — only after the user confirms.
 
 ## Deleting/Editing Questions
 
