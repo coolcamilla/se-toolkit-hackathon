@@ -87,7 +87,9 @@ class _ChatScreenState extends State<ChatScreen> {
       'Quick actions:\n'
       '• 📝 **Random Quiz** — test yourself with random questions\n'
       '• 🎯 **Training** — practice your weakest areas\n'
-      '• ➕ **Add Question** — add your own questions to the database\n\n'
+      '• ➕ **Add Question** — add your own questions\n'
+      '• 🗑️ **Delete** — remove questions or entire topics\n'
+      '• 🔍 **Search** — find questions by keyword\n\n'
       'Just tap a button or type a message to begin!',
     );
   }
