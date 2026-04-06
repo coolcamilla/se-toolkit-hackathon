@@ -130,7 +130,7 @@ When the user says "start training", "training mode", "practice my weak spots", 
    h. **STEP 8 — NEXT QUESTION:** Go back to STEP 1.
 4. **Stop on request** — Same as Random Quiz.
 
-> 🚨 **BEFORE every question you MUST call `get_random_weighted`.** Never invent questions. Only use database questions.
+> 🚨 **Training mode ONLY uses questions the user has already answered.** The `get_random_weighted` tool picks from your attempt history — questions with lower scores appear more often. Do NOT use `get_random_question` in Training mode. Do NOT invent questions. If all weak questions have been covered, cycle back to the beginning.
 
 **Example flow:**
 
