@@ -22,14 +22,10 @@ services:
       - TUTOR_DB_NAME=${POSTGRES_DB:?'POSTGRES_DB is required'}
       - TUTOR_DB_USER=${POSTGRES_USER:?'POSTGRES_USER is required'}
       - TUTOR_DB_PASSWORD=${POSTGRES_PASSWORD:?'POSTGRES_PASSWORD is required'}
-      - TUTOR_API_KEY=${LMS_API_KEY:?'LMS_API_KEY is required'}
-    volumes:
-      - tutor-data:/app
+      - TUTOR_API_KEY=${TUTOR_API_KEY:?'TUTOR_API_KEY is required'}
     depends_on:
       postgres:
         condition: service_healthy
-      otel-collector:
-        condition: service_started
 
   postgres:
     image: ${REGISTRY_PREFIX_DOCKER_HUB:-}postgres:18.3-alpine
@@ -54,29 +50,6 @@ services:
       timeout: 5s
       retries: 5
 
-  pgadmin:
-    image: ${REGISTRY_PREFIX_DOCKER_HUB:-}dpage/pgadmin4:latest
-    restart: unless-stopped
-    networks:
-      - lms-network
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:?'PGADMIN_EMAIL is required'}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:?'PGADMIN_PASSWORD is required'}
-      - SCRIPT_NAME=/utils/pgadmin
-    ports:
-      - ${PGADMIN_HOST_ADDRESS:?'PGADMIN_HOST_ADDRESS is required'}:${PGADMIN_HOST_PORT:?'PGADMIN_HOST_PORT is required'}:80
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  client-web-react:
-    build:
-      context: client-web-react/
-      args:
-        REGISTRY_PREFIX_DOCKER_HUB: ${REGISTRY_PREFIX_DOCKER_HUB:-}
-    volumes:
-      - client-web-react:/output
-
   # Task 2A — nanobot agent with MCP tools
   nanobot:
     build:
@@ -92,13 +65,9 @@ services:
     networks:
       - lms-network
     volumes:
-      # Mount only the parts nanobot needs to edit or read from the repo.
       - ./nanobot:/app/nanobot
       - ./mcp:/app/mcp
       - ./nanobot-websocket-channel:/app/nanobot-websocket-channel
-      - ./wiki:/app/wiki:ro
-      - ./lab:/app/lab:ro
-      - ./contributing:/app/contributing:ro
     environment:
       - LLM_API_KEY=${LLM_API_KEY:?'LLM_API_KEY is required'}
       - LLM_API_BASE_URL=http://qwen-code-api:${QWEN_CODE_API_CONTAINER_PORT:?'QWEN_CODE_API_CONTAINER_PORT is required'}/v1
@@ -116,17 +85,9 @@ services:
       - TUTOR_LLM_API_KEY=${LLM_API_KEY:?'LLM_API_KEY is required'}
       - TUTOR_LLM_API_BASE_URL=http://qwen-code-api:${QWEN_CODE_API_CONTAINER_PORT:?'QWEN_CODE_API_CONTAINER_PORT is required'}/v1
       - TUTOR_LLM_MODEL=${LLM_API_MODEL:?'LLM_API_MODEL is required'}
-      - OTEL_SERVICE_NAME=nanobot
-      - OTEL_TRACES_EXPORTER=otlp
-      - OTEL_METRICS_EXPORTER=none
-      - OTEL_LOGS_EXPORTER=otlp
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:${CONST_OTEL_COLLECTOR_GRPC_PORT:?'CONST_OTEL_COLLECTOR_GRPC_PORT is required'}
-      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-      - OTEL_PYTHON_LOG_CORRELATION=true
     depends_on:
       - backend
       - qwen-code-api
-      - otel-collector
 
   # Task 2B — Flutter web client build
   client-web-flutter:
@@ -144,25 +105,18 @@ services:
       - lms-network
     depends_on:
       - backend
-      - client-web-react
       - client-web-flutter
       - nanobot
       - qwen-code-api
-      - victorialogs
-      - victoriatraces
     environment:
       - CADDY_CONTAINER_PORT=${CADDY_CONTAINER_PORT:?'CADDY_CONTAINER_PORT is required'}
       - BACKEND_CONTAINER_PORT=${BACKEND_CONTAINER_PORT:?'BACKEND_CONTAINER_PORT is required'}
       - NANOBOT_WEBCHAT_CONTAINER_PORT=${NANOBOT_WEBCHAT_CONTAINER_PORT:?'NANOBOT_WEBCHAT_CONTAINER_PORT is required'}
       - QWEN_CODE_API_CONTAINER_PORT=${QWEN_CODE_API_CONTAINER_PORT:?'QWEN_CODE_API_CONTAINER_PORT is required'}
-      - CONST_PGADMIN_CONTAINER_PORT=${CONST_PGADMIN_CONTAINER_PORT:?'CONST_PGADMIN_CONTAINER_PORT is required'}
-      - CONST_VICTORIALOGS_CONTAINER_PORT=${CONST_VICTORIALOGS_CONTAINER_PORT:?'CONST_VICTORIALOGS_CONTAINER_PORT is required'}
-      - CONST_VICTORIATRACES_CONTAINER_PORT=${CONST_VICTORIATRACES_CONTAINER_PORT:?'CONST_VICTORIATRACES_CONTAINER_PORT is required'}
     ports:
       - ${GATEWAY_HOST_ADDRESS:?'GATEWAY_HOST_ADDRESS is required'}:${GATEWAY_HOST_PORT:?'GATEWAY_HOST_PORT is required'}:${CADDY_CONTAINER_PORT}
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-      - client-web-react:/srv/react:ro
       - client-web-flutter:/srv/flutter:ro
 
   qwen-code-api:
@@ -187,16 +141,6 @@ services:
       - QWEN_CODE_AUTH_USE=${QWEN_CODE_API_AUTH_USE:?'QWEN_CODE_API_AUTH_USE is required'}
       - LOG_REQUESTS=${QWEN_CODE_API_LOG_REQUESTS:?'QWEN_CODE_API_LOG_REQUESTS is required'}
       - QWEN_CODE_API_KEY=${QWEN_CODE_API_KEY:-}
-      - OTEL_SERVICE_NAME=Qwen Code API
-      - OTEL_TRACES_EXPORTER=otlp
-      - OTEL_METRICS_EXPORTER=none
-      - OTEL_LOGS_EXPORTER=otlp
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:${CONST_OTEL_COLLECTOR_GRPC_PORT:?'CONST_OTEL_COLLECTOR_GRPC_PORT is required'}
-      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-      - OTEL_PYTHON_LOG_CORRELATION=true
-    depends_on:
-      otel-collector:
-        condition: service_started
     healthcheck:
       test:
         - CMD
@@ -214,77 +158,9 @@ services:
       retries: 3
       start_period: 10s
 
-  # Optional Task 1 — uncomment after you add the Telegram client repo in Task 2.
-  # client-telegram-bot:
-  #   build:
-  #     context: ./nanobot-websocket-channel/client-telegram-bot
-  #     additional_contexts:
-  #       workspace: ./nanobot-websocket-channel
-  #     dockerfile: Dockerfile
-  #     args:
-  #       REGISTRY_PREFIX_DOCKER_HUB: ${REGISTRY_PREFIX_DOCKER_HUB:-}
-  #   restart: unless-stopped
-  #   networks:
-  #     - lms-network
-  #   environment:
-  #     - BOT_TOKEN=${BOT_TOKEN:?'BOT_TOKEN is required'}
-  #     - NANOBOT_WS_URL=${NANOBOT_WS_URL:?'NANOBOT_WS_URL is required'}
-  #     - NANOBOT_ACCESS_KEY=${NANOBOT_ACCESS_KEY:?'NANOBOT_ACCESS_KEY is required'}
-  #     - OTEL_SERVICE_NAME=client-telegram-bot
-  #     - OTEL_TRACES_EXPORTER=otlp
-  #     - OTEL_METRICS_EXPORTER=none
-  #     - OTEL_LOGS_EXPORTER=otlp
-  #     - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:${CONST_OTEL_COLLECTOR_GRPC_PORT:?'CONST_OTEL_COLLECTOR_GRPC_PORT is required'}
-  #     - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-  #     - OTEL_PYTHON_LOG_CORRELATION=true
-  #   depends_on:
-  #     - nanobot
-  #     - otel-collector
-
-  victorialogs:
-    image: ${REGISTRY_PREFIX_DOCKER_HUB:-}victoriametrics/victoria-logs:latest
-    restart: unless-stopped
-    networks:
-      - lms-network
-    ports:
-      - ${VICTORIALOGS_HOST_ADDRESS:?'VICTORIALOGS_HOST_ADDRESS is required'}:${VICTORIALOGS_HOST_PORT:?'VICTORIALOGS_HOST_PORT is required'}:${CONST_VICTORIALOGS_CONTAINER_PORT:?'CONST_VICTORIALOGS_CONTAINER_PORT is required'}
-    volumes:
-      - victorialogs_data:/victoria-logs-data
-    command:
-      - -storageDataPath=/victoria-logs-data
-      - -retentionPeriod=7d
-
-  victoriatraces:
-    image: ${REGISTRY_PREFIX_DOCKER_HUB:-}victoriametrics/victoria-traces:latest
-    restart: unless-stopped
-    networks:
-      - lms-network
-    ports:
-      - ${VICTORIATRACES_HOST_ADDRESS:?'VICTORIATRACES_HOST_ADDRESS is required'}:${VICTORIATRACES_HOST_PORT:?'VICTORIATRACES_HOST_PORT is required'}:${CONST_VICTORIATRACES_CONTAINER_PORT:?'CONST_VICTORIATRACES_CONTAINER_PORT is required'}
-    volumes:
-      - victoriatraces_data:/victoria-traces-data
-    command:
-      - -storageDataPath=/victoria-traces-data
-      - -retentionPeriod=7d
-
-  otel-collector:
-    image: ${REGISTRY_PREFIX_DOCKER_HUB:-}otel/opentelemetry-collector-contrib:latest
-    restart: unless-stopped
-    networks:
-      - lms-network
-    volumes:
-      - ./otel-collector/config.yaml:/etc/otelcol-contrib/config.yaml
-    depends_on:
-      - victorialogs
-      - victoriatraces
-
 volumes:
   postgres_data:
-  client-web-react:
   client-web-flutter:
-  victorialogs_data:
-  victoriatraces_data:
-  tutor-data:
 
 networks:
   lms-network:
