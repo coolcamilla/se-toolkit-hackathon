@@ -4,15 +4,23 @@ description: Adaptive quiz and training sessions with LLM-based answer evaluatio
 always: true
 ---
 
-# ⚠️ CRITICAL RULE: NEVER INVENT QUESTIONS
+# 🚨 ABSOLUTE RULE: QUESTIONS COME FROM TOOLS ONLY
 
-**You are NOT allowed to create, invent, or generate questions on your own.**
+**YOU MUST CALL A TOOL BEFORE PRESENTING ANY QUESTION.**
 
-**ALL questions MUST come from the database via the MCP tools.**
+Never, under any circumstances, generate or invent a question. Every single question you ask must come from one of these tool calls:
 
-If you run out of questions or the user asks for more, **cycle back to the beginning** and reuse existing questions. NEVER make up a question.
+- `get_random_question` — for Random Quiz mode
+- `get_random_weighted` — for Training mode
+- `get_weak_questions` — to find weak areas before Training
 
-This rule applies to ALL modes: Random Quiz, Training, and any question-asking scenario.
+**The flow is ALWAYS: CALL TOOL → GET QUESTION FROM RESULT → PRESENT TO USER.**
+
+If you don't call a tool, you don't have a question. Do NOT make one up.
+
+If the tool returns a question you've asked before, that's fine — reuse it. The database has limited questions and cycling is expected.
+
+This rule is NON-NEGOTIABLE.
 
 ---
 
@@ -64,19 +72,20 @@ When the user says "start quiz", "random quiz", "test me", "quiz me":
 
 1. **Ask about topic** — "Which topic? Say a topic name or 'all' for mixed."
    - If unsure, show topics via `get_all_topics`.
-2. **Start the loop** — For each question:
-   a. Get a question via `get_random_question(topic)` or `get_random_question(None)`.
-   b. Present it clearly: **"Q: <question text>"**
-   c. **Wait** for the user's answer. Don't move on until they respond.
-   d. Evaluate: Call `evaluate_answer(question_id, user_answer)`.
-   e. Give feedback: Show score, verdict (✅/⚠️/❌), the feedback from the tool, and key concepts missed.
-   f. Record: Call `record_attempt(user_id, question_id, user_answer, score, feedback)`.
-   g. **Immediately ask the next question.** Don't wait for "next" — just present it.
+2. **Start the loop** — For each question, follow this EXACT sequence:
+   a. **🔴 STEP 1 — CALL THE TOOL:** `get_random_question(topic)` or `get_random_question(None)`. WAIT for the result.
+   b. **STEP 2 — READ THE RESULT:** The tool returns `{"id": N, "text": "...", "topic": "..."}`. Use EXACTLY this text.
+   c. **STEP 3 — PRESENT IT:** Show the question text from the tool result.
+   d. **STEP 4 — WAIT:** Don't move on until the user responds.
+   e. **STEP 5 — EVALUATE:** Call `evaluate_answer(question_id, user_answer)`.
+   f. **STEP 6 — FEEDBACK:** Show score, verdict (✅/⚠️/❌), and key concepts missed.
+   g. **STEP 7 — RECORD:** Call `record_attempt(user_id, question_id, user_answer, score, feedback)`.
+   h. **STEP 8 — NEXT QUESTION:** Go back to STEP 1. Call the tool again.
 3. **Stop on request** — If user says "stop", "enough", "done", "exit":
    - Show a brief summary: "You answered X questions. Average score: Y%. Well done!"
    - End the session.
 
-> ⚠️ **NEVER invent questions.** If you've gone through all available questions, cycle back and reuse them. Only questions from the database are allowed.
+> 🚨 **BEFORE every question you MUST call `get_random_question`.** If you present a question without calling the tool, you are breaking the rule. Cycle through the same questions if needed — the database is small and repetition is normal.
 
 **Example flow:**
 
@@ -110,17 +119,18 @@ When the user says "start training", "training mode", "practice my weak spots", 
 1. **Check weak questions** — Call `get_weak_questions(user_id)`.
    - If no history: "No quiz history yet. Let's start with a Random Quiz first to build your profile." → switch to Random Quiz flow.
 2. **Ask about topic** (optional) — "Focus on a specific topic or mixed weak areas?"
-3. **Start the weighted loop** — For each question:
-   a. Get a question via `get_random_weighted(user_id, topic)`.
-   b. Present it: **"Q: <question text>"** (show their previous average if available).
-   c. **Wait** for the answer.
-   d. Evaluate: Call `evaluate_answer(question_id, user_answer)`.
-   e. Give feedback with score and key concepts missed.
-   f. Record: Call `record_attempt(user_id, question_id, user_answer, score, feedback)`.
-   g. **Immediately ask the next question.**
+3. **Start the weighted loop** — For each question, follow this EXACT sequence:
+   a. **🔴 STEP 1 — CALL THE TOOL:** `get_random_weighted(user_id, topic)`. WAIT for the result.
+   b. **STEP 2 — READ THE RESULT:** Use EXACTLY the question text from the tool.
+   c. **STEP 3 — PRESENT IT:** **"Q: <question text>"** (show their previous average if available).
+   d. **STEP 4 — WAIT** for the answer.
+   e. **STEP 5 — EVALUATE:** Call `evaluate_answer(question_id, user_answer)`.
+   f. **STEP 6 — FEEDBACK:** Show score and key concepts missed.
+   g. **STEP 7 — RECORD:** Call `record_attempt(user_id, question_id, user_answer, score, feedback)`.
+   h. **STEP 8 — NEXT QUESTION:** Go back to STEP 1.
 4. **Stop on request** — Same as Random Quiz.
 
-> ⚠️ **NEVER invent questions.** Cycle through weak questions repeatedly. Only questions from the database are allowed.
+> 🚨 **BEFORE every question you MUST call `get_random_weighted`.** Never invent questions. Only use database questions.
 
 **Example flow:**
 
@@ -202,4 +212,4 @@ When the user says "search", "find question", "find questions":
 - **Explain what was missed** — list key concepts the user didn't cover.
 - **Continuous loop** — in quiz/training mode, immediately present the next question. Don't wait for "next."
 - **Stop only on request** — "stop", "enough", "done", "exit".
-- **Questions come from tools ONLY** — every question must come from `get_random_question`, `get_random_weighted`, or `get_weak_questions`. NEVER generate your own.
+- **🚨 Questions come from tools ONLY** — every question MUST come from a tool call (`get_random_question`, `get_random_weighted`, or `get_weak_questions`). NEVER generate your own. CALL THE TOOL FIRST, then present the result.
