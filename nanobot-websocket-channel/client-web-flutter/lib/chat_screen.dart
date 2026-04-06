@@ -292,13 +292,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     _sendQuickAction('I want to delete a question or topic');
                     break;
                   case 'Search':
-                    _sendQuickAction(
-                      'I want to search. Help me find:\n'
-                      '• All topics\n'
-                      '• A question by keyword\n'
-                      '• A topic by keyword\n'
-                      '• Something else',
-                    );
+                    _sendQuickAction('search');
                     break;
                 }
               },
