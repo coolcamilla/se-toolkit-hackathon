@@ -725,12 +725,16 @@ class _ChatScreenState extends State<ChatScreen> {
                 decoration: InputDecoration(
                   hintText: 'Type your answer or a message...',
                   prefixIcon: const Icon(Icons.edit_note_outlined),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: _isLoading ? null : () => _sendMessage(_controller.text),
+                  ),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 ),
                 onSubmitted: _isLoading ? null : _sendMessage,
                 textCapitalization: TextCapitalization.sentences,
-                maxLines: null,
+                maxLines: 1,
               ),
             ),
             const SizedBox(width: 8),
