@@ -313,6 +313,11 @@ async def _delete_question(question_id: int) -> dict:
         if q is None:
             return {"error": f"Question with id={question_id} not found"}
         info = {"id": q.id, "text": q.text, "topic": q.topic, "status": "deleted"}
+        # Delete related progress records
+        await session.execute(
+            text("DELETE FROM user_progress WHERE question_id = :qid"),
+            {"qid": question_id},
+        )
         await session.delete(q)
         await session.commit()
         return info
@@ -356,6 +361,13 @@ async def _delete_topic(topic: str) -> dict:
             return {"error": f"No questions found for topic '{topic}'"}
         count = len(rows)
         questions = [{"id": q.id, "text": q.text, "topic": q.topic} for q in rows]
+        # Delete related progress records for all questions in this topic
+        question_ids = [q.id for q in rows]
+        for qid in question_ids:
+            await session.execute(
+                text("DELETE FROM user_progress WHERE question_id = :qid"),
+                {"qid": qid},
+            )
         for q in rows:
             await session.delete(q)
         await session.commit()
