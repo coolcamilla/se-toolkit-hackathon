@@ -4,8 +4,6 @@ requires-python = "==3.14.*"
 
 [manifest]
 members = [
-    "mcp-lms",
-    "mcp-obs",
     "mcp-tutor",
     "mcp-webchat",
     "nanobot",
@@ -848,46 +846,6 @@ wheels = [
 ]
 
 [[package]]
-name = "mcp-lms"
-version = "1.0.0"
-source = { editable = "mcp/mcp-lms" }
-dependencies = [
-    { name = "httpx" },
-    { name = "mcp" },
-    { name = "opentelemetry-distro", extra = ["otlp"] },
-    { name = "opentelemetry-exporter-otlp-proto-grpc" },
-    { name = "opentelemetry-instrumentation-httpx" },
-    { name = "opentelemetry-instrumentation-logging" },
-    { name = "pydantic" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "httpx", specifier = ">=0.28.0,<1.0.0" },
-    { name = "mcp", specifier = ">=1.26.0,<2.0.0" },
-    { name = "opentelemetry-distro", extras = ["otlp"], specifier = ">=0.61b0" },
-    { name = "opentelemetry-exporter-otlp-proto-grpc", specifier = ">=1.40.0" },
-    { name = "opentelemetry-instrumentation-httpx", specifier = ">=0.61b0" },
-    { name = "opentelemetry-instrumentation-logging", specifier = ">=0.61b0" },
-    { name = "pydantic", specifier = ">=2.12.0,<3.0.0" },
-]
-
-[[package]]
-name = "mcp-obs"
-version = "0.1.0"
-source = { editable = "mcp/mcp-obs" }
-dependencies = [
-    { name = "httpx" },
-    { name = "mcp" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "httpx", specifier = ">=0.28.0" },
-    { name = "mcp", specifier = ">=1.0.0" },
-]
-
-[[package]]
 name = "mcp-tutor"
 version = "1.0.0"
 source = { editable = "mcp/mcp-tutor" }
@@ -1008,8 +966,6 @@ name = "nanobot"
 version = "0.1.0"
 source = { virtual = "nanobot" }
 dependencies = [
-    { name = "mcp-lms" },
-    { name = "mcp-obs" },
     { name = "mcp-tutor" },
     { name = "mcp-webchat" },
     { name = "nanobot-ai" },
@@ -1018,8 +974,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "mcp-lms", editable = "mcp/mcp-lms" },
-    { name = "mcp-obs", editable = "mcp/mcp-obs" },
     { name = "mcp-tutor", editable = "mcp/mcp-tutor" },
     { name = "mcp-webchat", editable = "nanobot-websocket-channel/mcp-webchat" },
     { name = "nanobot-ai", url = "https://github.com/HKUDS/nanobot/archive/e7d371ec1e6531b28898ec2c869ef338e8dd46ec.zip" },
