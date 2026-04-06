@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'llm_service.dart';
 import 'protocol.dart';
@@ -711,9 +712,11 @@ class _ChatScreenState extends State<ChatScreen> {
     final focusNode = FocusNode(
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.enter &&
-            !HardwareKeyboard.instance.isShiftPressed) {
-          if (!_isLoading && _controller.text.trim().isNotEmpty) {
+            event.logicalKey == LogicalKeyboardKey.enter) {
+          final shiftPressed = HardwareKeyboard.instance.isShiftPressed;
+          if (!shiftPressed &&
+              !_isLoading &&
+              _controller.text.trim().isNotEmpty) {
             _sendMessage(_controller.text);
             return KeyEventResult.handled;
           }
