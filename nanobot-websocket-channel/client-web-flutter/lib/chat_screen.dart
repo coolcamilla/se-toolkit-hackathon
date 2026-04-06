@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 
 import 'llm_service.dart';
 import 'protocol.dart';
+import 'simple_markdown.dart';
 
 class ChatMessage {
   final String text;
@@ -423,46 +423,8 @@ class _ChatScreenState extends State<ChatScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (score != null) _buildScoreBadge(score),
-          MarkdownBody(
+          SimpleMarkdown(
             data: text,
-            styleSheet: MarkdownStyleSheet(
-              p: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 14.5,
-                height: 1.5,
-              ),
-              strong: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 14.5,
-                fontWeight: FontWeight.bold,
-              ),
-              em: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 14.5,
-                fontStyle: FontStyle.italic,
-              ),
-              listBullet: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 14.5,
-              ),
-              code: TextStyle(
-                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                fontSize: 13,
-              ),
-              blockquote: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 14.5,
-                fontStyle: FontStyle.italic,
-              ),
-              blockquoteDecoration: BoxDecoration(
-                border: Border(
-                  left: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant,
-                    width: 3,
-                  ),
-                ),
-              ),
-            ),
             selectable: true,
           ),
         ],
@@ -566,20 +528,8 @@ class _ChatScreenState extends State<ChatScreen> {
           if (content.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: MarkdownBody(
+              child: SimpleMarkdown(
                 data: content,
-                styleSheet: MarkdownStyleSheet(
-                  p: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 14.5,
-                    height: 1.5,
-                  ),
-                  strong: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
                 selectable: true,
               ),
             ),
@@ -635,20 +585,8 @@ class _ChatScreenState extends State<ChatScreen> {
           if (content.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: MarkdownBody(
+              child: SimpleMarkdown(
                 data: content,
-                styleSheet: MarkdownStyleSheet(
-                  p: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 14.5,
-                    height: 1.5,
-                  ),
-                  strong: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
                 selectable: true,
               ),
             ),
