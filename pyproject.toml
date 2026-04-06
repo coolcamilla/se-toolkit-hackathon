@@ -2,29 +2,19 @@
 members = [
   "backend",
   "qwen-code-api",
-  "mcp/mcp-lms",
   "mcp/mcp-tutor",
   "nanobot",
-  # Uncomment these later in the lab after you add the matching repos/packages.
-  "mcp/mcp-obs",
   "nanobot-websocket-channel/nanobot-channel-protocol",
   "nanobot-websocket-channel/mcp-webchat",
   "nanobot-websocket-channel/nanobot-webchat",
-  # "nanobot-websocket-channel/client-telegram-bot",
 ]
 
 [tool.uv.sources]
 tutor-backend = { path = "backend", editable = true }
-mcp-lms = { path = "mcp/mcp-lms", editable = true }
 mcp-tutor = { path = "mcp/mcp-tutor", editable = true }
-
-# Uncomment these later in the lab after you add the matching repos/packages.
-
-mcp-obs = { path = "mcp/mcp-obs", editable = true }
 mcp-webchat = { path = "nanobot-websocket-channel/mcp-webchat", editable = true }
 nanobot-channel-protocol = { path = "nanobot-websocket-channel/nanobot-channel-protocol", editable = true }
 nanobot-webchat = { path = "nanobot-websocket-channel/nanobot-webchat", editable = true }
-# client-telegram-bot = { path = "nanobot-websocket-channel/client-telegram-bot", editable = true }
 
 [dependency-groups]
 dev = [
@@ -43,114 +33,23 @@ exclude = ["qwen-code-api"]
 select = ["RET503"]
 
 [tool.poe.tasks]
-# Run server
-
-## Check code and run server in dev mode
-
-[tool.poe.tasks.dev]
-help = "Run server after static analysis"
-sequence = ["check", "dev-unsafe"]
-
-## Run server
-[tool.poe.tasks.dev-unsafe]
-help = "Run server without static analysis"
-cmd = "python -m lms_backend.run"
-
-# Run static analysis
-
-## Run all tools
-
-[tool.poe.tasks.check]
-help = "Format, lint, typecheck"
-sequence = ["format", "lint", "typecheck"]
-
-## Typecheck
-
-[tool.poe.tasks.typecheck]
-help = "Run all typecheckers"
-sequence = ["ty-check", "pyright-check"]
-
-[tool.poe.tasks.ty-check]
-help = "Run the 'ty' typechecker"
-cmd = "ty check"
+dev-unsafe.cmd = "python -m lms_backend.run"
 
 [tool.poe.tasks.pyright-check]
-help = "Run the 'pyright' typechecker"
 cmd = "pyright"
 
-## Lint
-
-[tool.poe.tasks.lint]
-help = "Run the 'ruff' linter"
-cmd = "ruff check"
-
-## Format
+[tool.poe.tasks.ty-check]
+cmd = "ty check"
 
 [tool.poe.tasks.format]
-help = "Run the 'ruff' formatter"
 cmd = "ruff format"
 
-# Run dynamic analysis
-
-## Run tests
-
-[tool.poe.tasks.test]
-help = "Run all tests"
-sequence = ["test-unit", "test-e2e"]
-
-[tool.poe.tasks.test-unit]
-help = "Run unit tests"
-cmd = "pytest backend/tests/unit"
-envfile = "backend/.env.tests.unit.secret"
-
-[tool.poe.tasks.test-e2e]
-help = "Run end-to-end tests against the deployed API"
-cmd = "pytest backend/tests/e2e"
-envfile = "backend/.env.tests.e2e.secret"
-
-# Export OpenAPI schema
-
-[tool.poe.tasks.export-openapi]
-help = "Export OpenAPI schema to openapi.json"
-cmd = "python scripts/export-openapi.py"
-env = { PYTHONPATH = "backend/src" }
-
-[tool.poe.tasks.check-openapi]
-help = "Check that openapi.json is up to date"
-cmd = "python scripts/export-openapi.py --check"
-env = { PYTHONPATH = "backend/src" }
-
-# Query Qwen Code API
-
-[tool.poe.tasks.query-qwen-code-api]
-help = "Query the Qwen Code API: poe query-qwen-code-api [OPTIONS] <prompt>"
-cmd = "python scripts/query-qwen-code-api.py"
+[tool.poe.tasks.lint]
+cmd = "ruff check"
 
 [tool.pyright]
-include = [
-  "backend",
-  "scripts",
-  "mcp",
-  "qwen-code-api",
-
-  # Uncomment this later in the lab after you add the matching repos/packages.
-
-  # "nanobot-websocket-channel"
-]
-extraPaths = [
-  "backend/src",
-  "mcp/mcp-lms/src",
-  "mcp/mcp-tutor/src",
-  "mcp/mcp-obs/src",
-  "qwen-code-api/src",
-
-  # Uncomment these later in the lab after you add the matching repos/packages.
-
-  # "nanobot-websocket-channel/mcp-webchat/src",
-  # "nanobot-websocket-channel/nanobot-channel-protocol/src",
-  # "nanobot-websocket-channel/client-telegram-bot/src",
-  # "nanobot-websocket-channel/nanobot-webchat/src",
-]
+include = ["backend", "scripts", "mcp", "qwen-code-api"]
+extraPaths = ["backend/src", "mcp/mcp-tutor/src", "qwen-code-api/src"]
 exclude = ["**/__pycache__", "**/node_modules", "**/.*", ".venv", ".direnv"]
 typeCheckingMode = "strict"
 reportAssignmentType = "none"
@@ -164,14 +63,6 @@ pythonpath = ["backend/src"]
 asyncio_mode = "auto"
 
 [tool.ty.src]
-include = [
-  "backend",
-  "mcp",
-  "qwen-code-api",
-
-  # Uncomment this later in the lab after you add the matching repos/packages.
-
-  # "nanobot-websocket-channel"
-]
+include = ["backend", "mcp", "qwen-code-api"]
 
 [tool.ty.rules]
