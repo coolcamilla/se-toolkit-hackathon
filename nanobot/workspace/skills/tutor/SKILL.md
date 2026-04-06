@@ -171,7 +171,10 @@ When the user says "add question", "create a question":
 >
 > **📝 Random Quiz** — test yourself with random questions (by topic or mixed)
 > **🎯 Training** — practice your weakest questions, spaced by performance
-> **➕ Add/Edit/Delete** questions in the database
+> **➕ Add** new questions to the database
+> **🗑️ Delete** questions or entire topics
+> **🔍 Search** — find questions by keyword
+> **✏️ Edit** existing questions
 > **📊 Track your progress** — I remember which questions you struggle with
 >
 > Just say "start quiz" or "start training"!
