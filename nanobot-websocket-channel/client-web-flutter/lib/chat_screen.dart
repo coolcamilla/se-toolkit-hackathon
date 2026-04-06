@@ -264,8 +264,8 @@ class _ChatScreenState extends State<ChatScreen> {
           _quickActionButton(
               Icons.fitness_center, 'Training', 'Practice weak areas'),
           _quickActionButton(Icons.add_circle_outline, 'Add', 'Add a question'),
-          _quickActionButton(
-              Icons.list_alt, 'Topics', 'View topics'),
+          _quickActionButton(Icons.delete_outline, 'Delete', 'Remove questions'),
+          _quickActionButton(Icons.search, 'Search', 'Find questions'),
         ],
       ),
     );
@@ -288,8 +288,17 @@ class _ChatScreenState extends State<ChatScreen> {
                   case 'Add':
                     _sendQuickAction('I want to add a question');
                     break;
-                  case 'Topics':
-                    _sendQuickAction('What topics are available?');
+                  case 'Delete':
+                    _sendQuickAction('I want to delete a question or topic');
+                    break;
+                  case 'Search':
+                    _sendQuickAction(
+                      'I want to search. Help me find:\n'
+                      '• All topics\n'
+                      '• A question by keyword\n'
+                      '• A topic by keyword\n'
+                      '• Something else',
+                    );
                     break;
                 }
               },
