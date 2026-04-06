@@ -708,6 +708,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildInputArea() {
     final theme = Theme.of(context);
+    final focusNode = FocusNode(
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.enter &&
+            !HardwareKeyboard.instance.isShiftPressed) {
+          if (!_isLoading && _controller.text.trim().isNotEmpty) {
+            _sendMessage(_controller.text);
+            return KeyEventResult.handled;
+          }
+        }
+        return KeyEventResult.ignored;
+      },
+    );
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       decoration: BoxDecoration(
@@ -718,46 +731,49 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       child: SafeArea(
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
               child: TextField(
+                focusNode: focusNode,
                 controller: _controller,
                 decoration: InputDecoration(
                   hintText: 'Type your answer or a message...',
-                  prefixIcon: const Icon(Icons.edit_note_outlined),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.send),
-                    onPressed: _isLoading ? null : () => _sendMessage(_controller.text),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.only(left: 16),
+                    child: Icon(Icons.edit_note_outlined),
                   ),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 ),
-                onSubmitted: _isLoading ? null : _sendMessage,
                 textCapitalization: TextCapitalization.sentences,
-                maxLines: 1,
+                maxLines: 4,
+                minLines: 1,
               ),
             ),
             const SizedBox(width: 8),
-            if (_isLoading)
-              IconButton.filledTonal(
-                onPressed: _stopWaiting,
-                icon: const Icon(Icons.stop_rounded),
-                tooltip: 'Stop',
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.red[50],
-                  foregroundColor: Colors.red[700],
-                ),
-              )
-            else
-              IconButton.filled(
-                onPressed: () => _sendMessage(_controller.text),
-                icon: const Icon(Icons.send_rounded),
-                style: IconButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: _isLoading
+                  ? IconButton.filledTonal(
+                      onPressed: _stopWaiting,
+                      icon: const Icon(Icons.stop_rounded),
+                      tooltip: 'Stop',
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.red[50],
+                        foregroundColor: Colors.red[700],
+                      ),
+                    )
+                  : IconButton.filled(
+                      onPressed: () => _sendMessage(_controller.text),
+                      icon: const Icon(Icons.send_rounded),
+                      style: IconButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+            ),
           ],
         ),
       ),

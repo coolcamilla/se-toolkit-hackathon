@@ -64,8 +64,8 @@ class _ChatbotAppState extends State<ChatbotApp> {
           ),
         ),
         textSelectionTheme: const TextSelectionThemeData(
-          selectionColor: Color(0xFF64B5F6),
-          selectionHandleColor: Color(0xFF1565C0),
+          selectionColor: Color(0x804A90D9),        // 50% opacity blue for better visibility
+          selectionHandleColor: Color(0xFF4A90D9),   // solid blue handles
           cursorColor: Color(0xFF1B5E20),
         ),
         inputDecorationTheme: InputDecorationTheme(
