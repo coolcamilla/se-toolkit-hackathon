@@ -651,7 +651,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 selectable: true,
               ),
-              ),
             ),
           Row(
             mainAxisSize: MainAxisSize.min,
