@@ -10,7 +10,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_markdown: ^0.7.1
   web: ^1.1.1
   web_socket_channel: ^3.0.1
 
