@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 import 'llm_service.dart';
 import 'protocol.dart';
@@ -422,13 +423,47 @@ class _ChatScreenState extends State<ChatScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (score != null) _buildScoreBadge(score),
-          SelectableText(
-            text,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontSize: 14.5,
-              height: 1.5,
+          MarkdownBody(
+            data: text,
+            styleSheet: MarkdownStyleSheet(
+              p: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 14.5,
+                height: 1.5,
+              ),
+              strong: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 14.5,
+                fontWeight: FontWeight.bold,
+              ),
+              em: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 14.5,
+                fontStyle: FontStyle.italic,
+              ),
+              listBullet: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 14.5,
+              ),
+              code: TextStyle(
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                fontSize: 13,
+              ),
+              blockquote: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 14.5,
+                fontStyle: FontStyle.italic,
+              ),
+              blockquoteDecoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                    width: 3,
+                  ),
+                ),
+              ),
             ),
+            selectable: true,
           ),
         ],
       ),
@@ -531,13 +566,21 @@ class _ChatScreenState extends State<ChatScreen> {
           if (content.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: SelectableText(
-                content,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 14.5,
-                  height: 1.5,
+              child: MarkdownBody(
+                data: content,
+                styleSheet: MarkdownStyleSheet(
+                  p: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14.5,
+                    height: 1.5,
+                  ),
+                  strong: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+                selectable: true,
               ),
             ),
           Wrap(
@@ -592,13 +635,21 @@ class _ChatScreenState extends State<ChatScreen> {
           if (content.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: SelectableText(
-                content,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 14.5,
-                  height: 1.5,
+              child: MarkdownBody(
+                data: content,
+                styleSheet: MarkdownStyleSheet(
+                  p: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14.5,
+                    height: 1.5,
+                  ),
+                  strong: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+                selectable: true,
               ),
             ),
           Row(
