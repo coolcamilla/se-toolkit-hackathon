@@ -43,9 +43,10 @@ The Exam Tutor uses AI to:
 
 ### Not Yet Implemented
 
-- ❌ Spaced repetition algorithm (e.g., SM-2) for long-term memory optimization.
+- ❌ Personal account for each user with email and password authentication.
 - ❌ Detailed analytics dashboard with charts of progress over time.
 - ❌ Import/Export questions via CSV or JSON.
+- ❌ Spaced repetition algorithm (e.g., SM-2) for long-term memory optimization.
 
 ## Usage
 
